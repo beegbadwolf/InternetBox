@@ -4,6 +4,9 @@
 
 //Load Libraries
 
+#include <WiFi.h>
+#include <ArduinoOTA.h>
+
 //set static / default Global variables.
 uint64_t chipid;  
 int batteryLevel=0;
@@ -26,9 +29,45 @@ void setup() {
   
   // 2. Start Wifi
   // https://github.com/zhouhan0126/WIFIMANAGER-ESP32
+  Serial.println("- Starting Wifi");
+  WiFi.begin("actdev", "-=-=-=");
 
+  while (WiFi.status() != WL_CONNECTED) {
+    delay(500);
+    Serial.println("Connecting to WiFi..");
+  }
+  Serial.println("Connected to the WiFi network");
+  
+  Serial.println("- Starting OTA");
   // 3. Setup OTA
   // https://github.com/espressif/arduino-esp32/blob/master/libraries/ArduinoOTA/examples/BasicOTA/BasicOTA.ino
+  ArduinoOTA
+    .onStart([]() {
+      String type;
+      if (ArduinoOTA.getCommand() == U_FLASH)
+        type = "sketch";
+      else // U_SPIFFS
+        type = "filesystem";
+
+      // NOTE: if updating SPIFFS this would be the place to unmount SPIFFS using SPIFFS.end()
+      Serial.println("Start updating " + type);
+    })
+    .onEnd([]() {
+      Serial.println("\nEnd");
+    })
+    .onProgress([](unsigned int progress, unsigned int total) {
+      Serial.printf("Progress: %u%%\r", (progress / (total / 100)));
+    })
+    .onError([](ota_error_t error) {
+      Serial.printf("Error[%u]: ", error);
+      if (error == OTA_AUTH_ERROR) Serial.println("Auth Failed");
+      else if (error == OTA_BEGIN_ERROR) Serial.println("Begin Failed");
+      else if (error == OTA_CONNECT_ERROR) Serial.println("Connect Failed");
+      else if (error == OTA_RECEIVE_ERROR) Serial.println("Receive Failed");
+      else if (error == OTA_END_ERROR) Serial.println("End Failed");
+    });
+
+  ArduinoOTA.begin();
   
   // 4. Setup webserver
   // https://github.com/zhouhan0126/WebServer-esp32
@@ -38,8 +77,10 @@ void setup() {
 
   // For debug setup the Built in LED
   pinMode (ledBuiltin, OUTPUT);
-  
- Serial.println("- Setup Complete");
+  Serial.println("Ready");
+  Serial.print("IP address: ");
+  Serial.println(WiFi.localIP());
+  Serial.println("- Setup Complete");
 }
 
 
@@ -48,6 +89,9 @@ void setup() {
 void loop() {
   // put your main code here, to run repeatedly:
   Serial.println("# Start Loop");
+
+  ArduinoOTA.handle();
+  
   //blink the built in LED
   digitalWrite(LED_BUILTIN, HIGH);
   delay(1000);
@@ -55,9 +99,6 @@ void loop() {
 
   
   // Set Variables only used in the loop.
-
-  // For testing
-
   
   // Read Battery Level from Pin A13(35)
    batteryLevel= analogRead( 35 ) *2;
@@ -76,8 +117,8 @@ void loop() {
   
   // For inital setup and debug
   // Sleep for one second (don't do this with wifi starts)
-  Serial.println("# Sleep 5 seconds");
-  delay(5000);
+//  Serial.println("# Sleep 5 seconds");
+//  delay(5000);
 
   Serial.println("# End Loop");
 }
