@@ -4,6 +4,11 @@
 
 //Load Libraries
 
+// add password.h to the end of the .git ignore file (this makes sure it is not checked into git)
+// Create a file called password.h in the same directory as the .ino file.
+// add the line 'extern const char wifiPass[12]="PASSWORD HERE";
+#include "password.h"
+
 #include <WiFi.h>
 #include <ArduinoOTA.h>
 
@@ -19,6 +24,7 @@ void setup() {
   Serial.begin(115200);
   // And print something so we know where we are.
   Serial.println("- Start setup");
+
   chipid=ESP.getEfuseMac();//The chip ID is essentially its MAC address(length: 6 bytes).
   Serial.printf("ESP32 Chip ID = %04X\n",(uint16_t)(chipid>>32));//print High 2 bytes
   Serial.printf("%08X\n",(uint32_t)chipid);//print Low 4bytes.
@@ -30,7 +36,7 @@ void setup() {
   // 2. Start Wifi
   // https://github.com/zhouhan0126/WIFIMANAGER-ESP32
   Serial.println("- Starting Wifi");
-  WiFi.begin("actdev", "-=-=-=");
+  WiFi.begin("actdev", wifiPass);
 
   while (WiFi.status() != WL_CONNECTED) {
     delay(500);
