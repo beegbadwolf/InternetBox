@@ -12,21 +12,22 @@
 #include <WiFi.h>
 #include <ArduinoOTA.h>
 #include <Adafruit_NeoPixel.h>
+
 #include "RemoteDebug.h"
+
 
 //set static / default Global variables.
 char HOST_NAME[12]="internetbox";
 uint64_t chipid;  
 int batteryLevel=0;
 int ledBuiltin=13;
-#define PIN 34
+#define PIN 13
 Adafruit_NeoPixel strip = Adafruit_NeoPixel(1, PIN, NEO_RGB + NEO_KHZ800);
-RemoteDebug Debug;
 
 //setup is run once when powered on.
 void setup() {
   // put your setup code here, to run once:
-  // Initailize Serial
+  // Initialize Serial
   Serial.begin(115200);
   // And print something so we know where we are.
   Serial.println("- Start setup");
@@ -38,6 +39,10 @@ void setup() {
   // 1. setup LED
   // https://learn.adafruit.com/adafruit-neopixel-uberguide/arduino-library-installation
   // Note that these are "RGB"
+
+  strip.begin();
+  strip.show(); // Initialize all pixels to 'off'
+  strip.setBrightness(255);
   
   // 2. Start Wifi
   // https://github.com/zhouhan0126/WIFIMANAGER-ESP32
@@ -132,8 +137,8 @@ void loop() {
   // Add battery level to outputs
 
   // 1. Set LED
-
-  
+   strip.setPixelColor(0, 255, 0, 0);
+   strip.show();
   // For inital setup and debug
   // Sleep for one second (don't do this with wifi starts)
 //  Serial.println("# Sleep 5 seconds");
