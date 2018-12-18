@@ -11,11 +11,17 @@
 
 #include <WiFi.h>
 #include <ArduinoOTA.h>
+#include <Adafruit_NeoPixel.h>
+#include "RemoteDebug.h"
 
 //set static / default Global variables.
+char HOST_NAME[12]="internetbox";
 uint64_t chipid;  
 int batteryLevel=0;
 int ledBuiltin=13;
+#define PIN 34
+Adafruit_NeoPixel strip = Adafruit_NeoPixel(1, PIN, NEO_RGB + NEO_KHZ800);
+RemoteDebug Debug;
 
 //setup is run once when powered on.
 void setup() {
@@ -43,10 +49,14 @@ void setup() {
     Serial.println("Connecting to WiFi..");
   }
   Serial.println("Connected to the WiFi network");
+
+  Serial.println("Setup Remote Debug");
+  Debug.begin(HOST_NAME);
   
   Serial.println("- Starting OTA");
   // 3. Setup OTA
   // https://github.com/espressif/arduino-esp32/blob/master/libraries/ArduinoOTA/examples/BasicOTA/BasicOTA.ino
+  ArduinoOTA.setHostname(HOST_NAME);
   ArduinoOTA
     .onStart([]() {
       String type;
@@ -86,6 +96,9 @@ void setup() {
   Serial.println("Ready");
   Serial.print("IP address: ");
   Serial.println(WiFi.localIP());
+
+  Debug.begin("Telnet_HostName");
+  
   Serial.println("- Setup Complete");
 }
 
@@ -95,7 +108,9 @@ void setup() {
 void loop() {
   // put your main code here, to run repeatedly:
   Serial.println("# Start Loop");
-
+  rdebugI("# Start Loop\n");
+  
+  // 3. OTA Do this early in the loop.
   ArduinoOTA.handle();
   
   //blink the built in LED
@@ -112,8 +127,6 @@ void loop() {
    Serial.println(batteryLevel);
   
   // 2. Do wifi stuff
-
-  // 3. OTA
   
   // 4. Do web stuff
   // Add battery level to outputs
@@ -126,5 +139,6 @@ void loop() {
 //  Serial.println("# Sleep 5 seconds");
 //  delay(5000);
 
+  Debug.handle();
   Serial.println("# End Loop");
 }
