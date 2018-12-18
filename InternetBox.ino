@@ -12,7 +12,7 @@ int ledBuiltin=13;
 //setup is run once when powered on.
 void setup() {
   // put your setup code here, to run once:
-  // Initailize Serial
+  // Initialize Serial
   Serial.begin(115200);
   // And print something so we know where we are.
   Serial.println("- Start setup");
