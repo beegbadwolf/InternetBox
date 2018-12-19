@@ -14,7 +14,7 @@
 #include <Adafruit_NeoPixel.h>
 
 #include "RemoteDebug.h"
-
+RemoteDebug Debug;
 
 //set static / default Global variables.
 char HOST_NAME[12]="internetbox";
@@ -113,15 +113,15 @@ void setup() {
 void loop() {
   // put your main code here, to run repeatedly:
   Serial.println("# Start Loop");
-  rdebugI("# Start Loop\n");
+  rdebugVln("# Start Loop");
   
   // 3. OTA Do this early in the loop.
   ArduinoOTA.handle();
   
   //blink the built in LED
-  digitalWrite(LED_BUILTIN, HIGH);
-  delay(1000);
-  digitalWrite(LED_BUILTIN, LOW);
+//  digitalWrite(LED_BUILTIN, HIGH);
+//  delay(1000);
+//  digitalWrite(LED_BUILTIN, LOW);
 
   
   // Set Variables only used in the loop.
@@ -130,6 +130,7 @@ void loop() {
    batteryLevel= analogRead( 35 ) *2;
    Serial.print("# Battery Level: " );
    Serial.println(batteryLevel);
+   rdebugIln("Battery Level =  %u", batteryLevel);
   
   // 2. Do wifi stuff
   
@@ -139,11 +140,14 @@ void loop() {
   // 1. Set LED
    strip.setPixelColor(0, 255, 0, 0);
    strip.show();
+   
   // For inital setup and debug
   // Sleep for one second (don't do this with wifi starts)
 //  Serial.println("# Sleep 5 seconds");
 //  delay(5000);
 
   Debug.handle();
+  yield();
   Serial.println("# End Loop");
+  rdebugVln("# End Loop");
 }
