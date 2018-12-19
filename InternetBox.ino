@@ -11,6 +11,7 @@
 
 #include <WiFi.h>
 #include <ArduinoOTA.h>
+#include <WebServer.h>
 #include <Adafruit_NeoPixel.h>
 
 #include "RemoteDebug.h"
@@ -23,6 +24,62 @@ int batteryLevel=0;
 int ledBuiltin=13;
 #define PIN 13
 Adafruit_NeoPixel strip = Adafruit_NeoPixel(1, PIN, NEO_RGB + NEO_KHZ800);
+WebServer server(80);
+
+//Display the Root webpage
+void handleRoot() {
+  Serial.println ("Handling Root");
+  char temp[450];
+  int sec = millis() / 1000;
+  int min = sec / 60;
+  int hr = min / 60;
+
+  snprintf(temp, 450,
+
+           "<html>\
+  <head>\
+    <meta http-equiv='refresh' content='5'/>\
+    <title>Internet Box</title>\
+    <style>\
+      body { background-color: #FFFFFF; font-family: Comic Sans MS, cursive, sans-serif; Color: #EA6620; }\
+    </style>\
+  </head>\
+  <body>\
+    <h1>It gets the best reception at the tippy-top of Big Ben...!</h1>\
+    <input type='color' value='#ff0000'>\
+    <p>Uptime: %02d:%02d:%02d</p>\
+  </body>\
+</html>",
+
+           hr, min % 60, sec % 60
+          );
+  server.send(200, "text/html", temp);
+}
+
+void handlePost() {
+  Serial.print("Data: ");
+//  Serial.println(server->arg("myData1"));
+//  Serial.print("Data: ");
+//  Serial.println(server->arg("myData2"));
+}
+
+void handleNotFound() {
+  String message = "File Not Found\n\n";
+  message += "URI: ";
+  message += server.uri();
+  message += "\nMethod: ";
+  message += (server.method() == HTTP_GET) ? "GET" : "POST";
+  message += "\nArguments: ";
+  message += server.args();
+  message += "\n";
+
+  for (uint8_t i = 0; i < server.args(); i++) {
+    message += " " + server.argName(i) + ": " + server.arg(i) + "\n";
+  }
+
+  server.send(404, "text/plain", message);
+}
+
 
 //setup is run once when powered on.
 void setup() {
@@ -93,7 +150,12 @@ void setup() {
   // 4. Setup webserver
   // https://github.com/zhouhan0126/WebServer-esp32
   // https://github.com/zhouhan0126/WebServer-esp32/blob/master/examples/AdvancedWebServer/AdvancedWebServer.ino
-  
+  server.on("/", handleRoot);
+  server.on("/post", HTTP_POST, handlePost);
+  server.onNotFound(handleNotFound);
+  server.begin();
+  Serial.println("HTTP server started");
+
   // 5. Setup API
 
   // For debug setup the Built in LED
@@ -136,6 +198,9 @@ void loop() {
   
   // 4. Do web stuff
   // Add battery level to outputs
+  // Add LED color change form (HTML5 Color Picker)
+  // Add Remote Reset
+server.handleClient();
 
   // 1. Set LED
    strip.setPixelColor(0, 255, 0, 0);
