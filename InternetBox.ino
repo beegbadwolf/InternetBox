@@ -29,6 +29,7 @@ WebServer server(80);
 //Display the Root webpage
 void handleRoot() {
   Serial.println ("Handling Root");
+  rdebugIln("Serving Root page");
   char temp[450];
   int sec = millis() / 1000;
   int min = sec / 60;
@@ -64,6 +65,8 @@ void handlePost() {
 }
 
 void handleNotFound() {
+  rdebugE("File Not Found");
+  rdebugEln(server.uri(););
   String message = "File Not Found\n\n";
   message += "URI: ";
   message += server.uri();
